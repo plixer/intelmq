@@ -121,7 +121,7 @@ intelmqctl: file-output was NOT RUNNING.
 
 ### run
 
-Run a bot directly for debugging purpose. Command temporarily leverages the logging level to DEBUG so that all the ```self.logger.debug("message")``` in the bot will get displayed.
+Run a bot directly for debugging purpose.
 
 If launched with no arguments, the bot will call its init method and start processing messages as usual – but you see everything happens.
 
@@ -149,6 +149,7 @@ Note that if another instance of the bot is running, only warning will be displa
 intelmqctl: Main instance of the bot is running in the background. You may want to launch: intelmqctl stop file-output
 ```
 
+You can set the log level with the `-l` flag, e.g. `-l DEBUG`. For the 'console' subcommand, 'DEBUG' is the default.
 
 #### console
 
@@ -209,7 +210,7 @@ file-output: Received message {'raw': '1234'}.
 ```
 
 If run with **--dryrun|-d** flag, the message gets never really popped out from the source or internal pipeline, nor send to the output pipeline.
-Plus, you receive a note about the exact moment the message would get sent, or acknowledged.
+Plus, you receive a note about the exact moment the message would get sent, or acknowledged. It is explicitly if sent to a non-default path.
 
 ```bash
 > intelmqctl run file-output process -d
@@ -225,6 +226,9 @@ You may trick the bot to process a JSON instead of the Message in its pipeline w
 file-output:  * Message from cli will be used when processing.
 ...
 ```
+
+If you wish to display the processed message as well, you the **--show-sent|-s** flag. Then, if sent through (either with `--dryrun` or without), the message gets displayed as well.
+
 
 ### disable
 
@@ -398,7 +402,11 @@ See the help page for more information.
 ## Check
 This command will do various sanity checks on the installation and especially the configuration.
 
+## Exit code
+In case of errors, unsuccessful operations, the exit code is higher than 0.
+For example, when running `intelmqctl start` and one enabled bot is not running, the exit code is 1.
+The same is valid for e.g. `intelmqctl status`, which can be used for monitoring, and all other operations.
+
 ## Known issues
 
 The currently implemented process managing using PID files is very erroneous.
-If a PID is saved, the process dies and a new program gets the same PID, another program receives the SIGINT signal.

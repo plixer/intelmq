@@ -114,6 +114,42 @@ class TestMessageFactory(unittest.TestCase):
         event = self.new_event()
         self.assertTrue(isinstance(event, (message.Message, dict)))
 
+    def test_message_eq(self):
+        """ Test if Message.__eq__ works. """
+        event1 = self.add_event_examples(self.new_event())
+        event2 = self.add_event_examples(self.new_event())
+        self.assertTrue(event1 == event2)
+
+    def test_message_ne(self):
+        """ Test if Message.__ne__ works. """
+        event1 = self.add_event_examples(self.new_event())
+        event2 = self.add_event_examples(self.new_event())
+        self.assertFalse(event1 != event2)
+
+    def test_event_report_eq(self):
+        """ Test if empty Message is not equal empty Report. """
+        event = self.new_event()
+        report = self.new_report(auto=True)
+        self.assertFalse(event == report)
+
+    def test_event_report_ne(self):
+        """ Test if empty Message is not equal empty Report. """
+        event = self.new_event()
+        report = self.new_report(auto=True)
+        self.assertTrue(event != report)
+
+    def test_event_eq_different_config(self):
+        """ Test if empty Message is not equal empty Report. """
+        event1 = message.Event(harmonization=HARM)
+        event2 = message.Event(harmonization={"event": {"extra": {"type": "JSON"}}})
+        self.assertFalse(event1 == event2)
+
+    def test_event_ne_different_config(self):
+        """ Test if empty Message is not equal empty Report. """
+        event1 = message.Event(harmonization=HARM)
+        event2 = message.Event(harmonization={"event": {"extra": {"type": "JSON"}}})
+        self.assertTrue(event1 != event2)
+
     def test_invalid_type(self):
         """ Test if Message raises InvalidArgument for invalid type. """
         with self.assertRaises(exceptions.InvalidArgument):
@@ -597,7 +633,7 @@ class TestMessageFactory(unittest.TestCase):
         """ Test Message.update """
         event = self.new_event()
         with self.assertRaises(exceptions.InvalidValue):
-            event.update({'source.asn': 'AS1'})
+            event.update({'source.asn': 'AS0'})
 
     def test_message_extra_construction(self):
         """
@@ -683,6 +719,34 @@ class TestMessageFactory(unittest.TestCase):
         event.add('extra.foo', 'bar')
         self.assertDictEqual(event.to_dict(hierarchical=False, jsondict_as_string=True),
                              {'extra': '{"foo": "bar"}'})
+
+    def test_invalid_harm_key(self):
+        """ Test if error is raised when using an invalid key. """
+        with self.assertRaises(exceptions.InvalidKey):
+            message.Event(harmonization={'event': {'foo..bar': {}}})
+        with self.assertRaises(exceptions.InvalidKey):
+            message.Event(harmonization={'event': {'foo.bar.': {}}})
+
+
+class TestReport(unittest.TestCase):
+    """
+    Test the Report class.
+    """
+    def test_report_from_event(self):
+        event = message.Event(harmonization=HARM)
+        event.add('feed.code', 'adasd')
+        event.add('source.fqdn', 'example.com')
+        report = message.Report(event, harmonization=HARM).to_dict()
+        self.assertNotIn('source.fqdn', report)
+        self.assertIn('feed.code', report)
+
+    def test_report_from_event_with_raw(self):
+        """ raw must not be sanitized (base64 encoded) """
+        event = message.Event(harmonization=HARM)
+        event.add('raw', 'foobar')
+        report = message.Report(event, harmonization=HARM)
+        self.assertEqual(report['raw'], 'Zm9vYmFy')
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

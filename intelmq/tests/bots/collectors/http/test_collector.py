@@ -3,7 +3,6 @@
 Testing HTTP collector
 """
 
-import os
 import unittest
 
 import intelmq.lib.test as test
@@ -37,7 +36,7 @@ class TestHTTPCollectorBot(test.BotTestCase, unittest.TestCase):
         cls.bot_reference = HTTPCollectorBot
         cls.sysconfig = {'http_url': 'http://localhost/two_files.tar.gz',
                          'extract_files': True,
-                         'feed': 'Example feed',
+                         'name': 'Example feed',
                          }
 
     def test_events(self):
@@ -47,6 +46,17 @@ class TestHTTPCollectorBot(test.BotTestCase, unittest.TestCase):
 
         self.assertMessageEqual(0, OUTPUT[0])
         self.assertMessageEqual(1, OUTPUT[1])
+
+    def test_formatting(self):
+        """ Test if correct Events have been produced. """
+        self.input_message = None
+        self.allowed_warning_count = 1  # message has empty raw
+        self.sysconfig = {'http_url': 'http://localhost/{time[%Y]}.txt',
+                          'extract_files': None,
+                          'name': 'Example feed',
+                          'http_url_formatting': True,
+                          }
+        self.run_bot(iterations=1)
 
 
 if __name__ == '__main__':  # pragma: no cover

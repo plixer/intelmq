@@ -30,7 +30,7 @@ class MessageFactory(object):
 
     @staticmethod
     def from_dict(message: dict, harmonization=None,
-                  default_type: Optional[str]=None) -> dict:
+                  default_type: Optional[str] = None) -> dict:
         """
         Takes dictionary Message object, returns instance of correct class.
 
@@ -56,8 +56,8 @@ class MessageFactory(object):
         return class_reference(message, auto=True, harmonization=harmonization)
 
     @staticmethod
-    def unserialize(raw_message: str, harmonization: dict=None,
-                    default_type: Optional[str]=None) -> dict:
+    def unserialize(raw_message: str, harmonization: dict = None,
+                    default_type: Optional[str] = None) -> dict:
         """
         Takes JSON-encoded Message object, returns instance of correct class.
 
@@ -106,16 +106,22 @@ class Message(dict):
                                              expected=VALID_MESSSAGE_TYPES,
                                              docs=HARMONIZATION_CONF_FILE)
 
-        if classname == 'event' and self.harmonization_config['extra']['type'] == 'JSON':
+        if (classname == 'event' and 'extra' in self.harmonization_config and
+           self.harmonization_config['extra']['type'] == 'JSON'):
             warnings.warn("Assuming harmonization type 'JSONDict' for harmonization field 'extra'. "
                           "This assumption will be removed in version 2.0.", DeprecationWarning)
             self.harmonization_config['extra']['type'] = 'JSONDict'
+        for harm_key in self.harmonization_config.keys():
+            if not re.match('^[a-z_](.[a-z_0-9]+)*$', harm_key) and harm_key != '__type':
+                raise exceptions.InvalidKey("Harmonization key %r is invalid." % harm_key)
 
         super(Message, self).__init__()
         if isinstance(message, dict):
             iterable = message.items()
         elif isinstance(message, tuple):
             iterable = message
+        else:
+            raise ValueError("Type %r of message can't be handled, must be dict or tuple.", type(message))
         for key, value in iterable:
             if not self.add(key, value, sanitize=False, raise_failure=False):
                 self.add(key, value, sanitize=True)
@@ -131,7 +137,7 @@ class Message(dict):
         else:
             return super(Message, self).__getitem__(key)
 
-    def is_valid(self, key: str, value: str, sanitize: bool=True) -> bool:
+    def is_valid(self, key: str, value: str, sanitize: bool = True) -> bool:
         """
         Checks if a value is valid for the key (after sanitation).
 
@@ -160,9 +166,9 @@ class Message(dict):
             return True
         return False
 
-    def add(self, key: str, value: str, sanitize: bool=True,
-            overwrite: Optional[bool]=None, ignore: Sequence=(),
-            raise_failure: bool=True) -> bool:
+    def add(self, key: str, value: str, sanitize: bool = True,
+            overwrite: Optional[bool] = None, ignore: Sequence = (),
+            raise_failure: bool = True) -> bool:
         """
         Add a value for the key (after sanitation).
 
@@ -251,7 +257,7 @@ class Message(dict):
             if not self.add(key, value, sanitize=False, raise_failure=False, overwrite=True):
                 self.add(key, value, sanitize=True, overwrite=True)
 
-    def change(self, key: str, value: str, sanitize: bool=True):
+    def change(self, key: str, value: str, sanitize: bool = True):
         if key not in self:
             raise exceptions.KeyNotExists(key)
         return self.add(key, value, overwrite=True, sanitize=sanitize)
@@ -383,8 +389,8 @@ class Message(dict):
 
         return event_hash.hexdigest()
 
-    def to_dict(self, hierarchical: bool=False, with_type: bool=False,
-                jsondict_as_string: bool=False) -> dict:
+    def to_dict(self, hierarchical: bool = False, with_type: bool = False,
+                jsondict_as_string: bool = False) -> dict:
         """
         Returns a copy of self, only based on a dict class.
 
@@ -430,7 +436,7 @@ class Message(dict):
                     break
 
                 if subkey not in json_dict_fp:
-                    json_dict_fp[subkey] = dict()
+                    json_dict_fp[subkey] = {}
 
                 json_dict_fp = json_dict_fp[subkey]
 
@@ -443,11 +449,31 @@ class Message(dict):
         json_dict = self.to_dict(hierarchical=hierarchical, with_type=with_type)
         return json.dumps(json_dict, ensure_ascii=False)
 
+    def __eq__(self, other) -> bool:
+        """
+        Necessary as we have an additional member harmonization_config and types.
+        The additional checks are only performed for subclasses of Message.
+
+        Comparison with other types e.g. dicts does not check the harmonization_config.
+        """
+        dict_eq = super(Message, self).__eq__(other)
+        if dict_eq and issubclass(type(other), Message):
+            type_eq = type(self) == type(other)
+            harm_eq = self.harmonization_config == other.harmonization_config if hasattr(other, 'harmonization_config') else False
+            if type_eq and harm_eq:
+                return True
+        elif dict_eq:
+            return True
+        return False
+
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
+
 
 class Event(Message):
 
-    def __init__(self, message: Optional[dict]=(), auto: bool=False,
-                 harmonization: Optional[dict]=None):
+    def __init__(self, message: Optional[dict] = (), auto: bool = False,
+                 harmonization: Optional[dict] = None):
         """
         Parameters:
             message: Give a report and feed.name, feed.url and
@@ -481,15 +507,23 @@ class Event(Message):
 
 class Report(Message):
 
-    def __init__(self, message: Optional[dict]=(), auto: bool=False,
-                 harmonization: Optional[dict]=None):
+    def __init__(self, message: Optional[dict] = (), auto: bool = False,
+                 harmonization: Optional[dict] = None):
         """
         Parameters:
-            message: Passed along to Message's and dict's init
+            message: Passed along to Message's and dict's init.
+                If this is an instance of the Event class, the resulting Report instance
+                has only the fiels which are possible in Report, all others are stripped.
             auto: if False (default), time.observation is automatically added.
             harmonization: Harmonization definition to use
         """
-        super(Report, self).__init__(message, auto, harmonization)
+        if isinstance(message, Event):
+            super(Report, self).__init__({}, auto, harmonization)
+            for key, value in message.items():
+                if self._Message__is_valid_key(key):
+                    self.add(key, value, sanitize=False)
+        else:
+            super(Report, self).__init__(message, auto, harmonization)
         if not auto and 'time.observation' not in self:
             time_observation = intelmq.lib.harmonization.DateTime().generate_datetime_now()
             self.add('time.observation', time_observation, sanitize=False)
