@@ -99,6 +99,7 @@ class Bot(object):
 
             self.stop()
             raise
+        self.logger.info("Bot initialization completed.")
 
     def __handle_sigterm_signal(self, signum: int, stack: Optional[object]):
         """
@@ -345,8 +346,6 @@ class Bot(object):
             self.logger.debug("Connected to destination queues.")
         else:
             self.logger.debug("No destination queues to load.")
-
-        self.logger.info("Pipeline ready.")
 
     def __disconnect_pipelines(self):
         """ Disconnecting pipelines. """

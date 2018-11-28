@@ -5,6 +5,8 @@ CHANGELOG
 ------------------
 ### Core
 - `intelmq.__version_info__` is now a list of integers (for numeric values)
+- `lib/bot`:
+  - Log message after successful bot initialization, no log message anymore for ready pipeline.
 
 1.1.0 (unreleased)
 ------------------
