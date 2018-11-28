@@ -2,10 +2,11 @@
 import time
 from itertools import chain
 
+import redis
+
 import intelmq.lib.exceptions as exceptions
 import intelmq.lib.pipeline
 import intelmq.lib.utils as utils
-import redis
 
 __all__ = ['Pipeline', 'PipelineFactory', 'Redis', 'Pythonlist']
 
@@ -41,8 +42,8 @@ class Pipeline(object):
     def set_queues(self, queues, queues_type):
         """
         :param queues: For source queue, it's just string.
-                    For destination queue, it can be one of the following: None or string or list of strings
-                        or {} (of either strings or lists) (should have the '_default' key)
+                    For destination queue, it can be one of the following:
+                    None or list or dict (of strings or lists, one of the key should be '_default')
 
         :param queues_type: "source" or "destination"
 
@@ -68,7 +69,7 @@ class Pipeline(object):
             else:
                 raise exceptions.InvalidArgument(
                     'queues', got=queues,
-                    expected=["None", "string", "list of strings", "{} (of either strings or lists) having the _default key"])
+                    expected=["None", "list of strings", "dict (of strings or lists that should have the _default key)"])
             self.destination_queues = q
         else:
             raise exceptions.InvalidArgument('queues_type', got=queues_type, expected=['source', 'destination'])
@@ -116,7 +117,7 @@ class Redis(Pipeline):
 
     def set_queues(self, queues, queues_type):
         self.load_configurations(queues_type)
-        super(Redis, self).set_queues(queues, queues_type)
+        super().set_queues(queues, queues_type)
 
     def send(self, message, path="_default"):
         message = utils.encode(message)
@@ -145,7 +146,13 @@ class Redis(Pipeline):
         if self.source_queue is None:
             raise exceptions.ConfigurationError('pipeline', 'No source queue given.')
         try:
-            retval = self.pipe.lindex(self.internal_queue, -1)  # returns None if no value
+            while True:
+                try:
+                    retval = self.pipe.lindex(self.internal_queue, -1)  # returns None if no value
+                except redis.exceptions.BusyLoadingError:  # Just wait at redis' startup #1334
+                    time.sleep(1)
+                else:
+                    break
             if not retval:
                 retval = self.pipe.brpoplpush(self.source_queue,
                                               self.internal_queue, 0)
@@ -206,7 +213,7 @@ class Pythonlist(Pipeline):
         pass
 
     def set_queues(self, queues, queues_type):
-        super(Pythonlist, self).set_queues(queues, queues_type)
+        super().set_queues(queues, queues_type)
         self.state[self.internal_queue] = []
         self.state[self.source_queue] = []
         for destination_queue in chain.from_iterable(self.destination_queues.values()):

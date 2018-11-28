@@ -1,5 +1,14 @@
 # Release procedure
 
+**Table of Contents:**
+- [Documentation](#documentation)
+- [Commit, push, review and merge](#commit-push-review-and-merge)
+- [Tag and release](#tag-and-release)
+- [Tarballs and PyPI](#tarballs-and-pypi)
+- [Packages](#packages)
+- [Announcements](#announcements)
+- [Prepare new version](#prepare-new-version)
+
 Make sure the current state is really final ;)
 You can test most of the steps described here locally before doing it real.
 
@@ -8,7 +17,7 @@ Assumption: You are working on branch maintenance, the next version is a bug fix
 ## Documentation
 
  * CHANGELOG.MD and
- * NEWS.MD: Update the latest header, fix the order and remove empty sections if necessary.
+ * NEWS.MD: Update the latest header, fix the order, remove empty sections and (re)group the entries if necessary.
  * `intelmq/version.py`: Update the version.
  * `debian/changelog`: Insert a new section for the new version with the tool `dch`.
 
@@ -55,6 +64,8 @@ Add a new empty changelog and news section. For the changelog:
 ```
 ### Core
 
+### Development
+
 ### Harmonization
 
 ### Bots
@@ -72,6 +83,8 @@ Add a new empty changelog and news section. For the changelog:
 
 ### Tests
 
+### Tools
+
 ### Contrib
 
 ### Known issues
@@ -79,6 +92,10 @@ Add a new empty changelog and news section. For the changelog:
 And for the news:
 
 ```
+### Tools
+
+### Harmonization
+
 ### Configuration
 
 ### Libraries
