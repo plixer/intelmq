@@ -6,13 +6,11 @@ from datetime import datetime, timedelta
 import pytz
 from dateutil import parser
 
-from collections import Sequence
-
 from intelmq.lib.bot import Bot
 from intelmq.lib.utils import parse_relative
 
 
-class FilterExpertBot(Bot):
+class FiltersExpertBot(Bot):
 
     _message_processed_verb = 'Forwarded'
 
@@ -41,7 +39,7 @@ class FilterExpertBot(Bot):
         if not (hasattr(self.parameters, 'filter_key')):
             self.logger.info("No filter_key parameter found.")
             self.filter = False
-        elif not (hasattr(self.parameters, 'filter_value') or hasattr(self.parameters, 'filter_values')):
+        elif not (hasattr(self.parameters, 'filter_values')):
             self.logger.info("No filter_value parameter found.")
             self.filter = False
         elif not (hasattr(self.parameters, 'filter_action')):
@@ -52,8 +50,6 @@ class FilterExpertBot(Bot):
              self.parameters.filter_action == "keep"):
             self.logger.info("Filter_action parameter definition unknown.")
             self.filter = False
-
-        self.multi = hasattr(self.parameters, 'filter_values')
 
         self.regex = False
         if hasattr(self.parameters, 'filter_regex') and self.parameters.filter_regex:
@@ -96,7 +92,7 @@ class FilterExpertBot(Bot):
         # key/value based filtering
         if self.filter and self.parameters.filter_action == "drop":
             if self.doFilter(event, self.parameters.filter_key,
-                                   self.parameters.filter_values if self.multi else self.parameters.filter_value):
+                             self.parameters.filter_values):
                 # action == drop, filter matches
                 self.send_message(event, path='action_other',
                                   path_permissive=True)
@@ -114,7 +110,7 @@ class FilterExpertBot(Bot):
 
         if self.filter and self.parameters.filter_action == "keep":
             if self.doFilter(event, self.parameters.filter_key,
-                             self.parameters.filter_value if self.multi else self.parameters.filter_values):
+                             self.parameters.filter_values):
                 # action == keep, filter matches
                 self.send_message(event, path='filter_match',
                                   path_permissive=True)
@@ -137,15 +133,11 @@ class FilterExpertBot(Bot):
         if self.regex:
             return self.regexSearchFilter(event, key)
         else:
-            return self.equalsFilter(event, key, condition)
+            return self.equalsFilter(event, key, conditions)
 
-    def equalsFilter(self, event, key, value):
-        if isinstance(value, collections.Sequence):
-                return (key in event and
-			event.get(key) in value)
-        else:
-                return (key in event and
-                	event.get(key) == value)
+    def equalsFilter(self, event, key, values):
+        return (key in event and
+                event.get(key) in values)
 
     def regexSearchFilter(self, event, key):
         if key in event:
@@ -154,4 +146,4 @@ class FilterExpertBot(Bot):
             return False
 
 
-BOT = FilterExpertBot
+BOT = FiltersExpertBot
