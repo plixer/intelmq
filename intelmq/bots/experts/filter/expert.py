@@ -42,7 +42,7 @@ class FilterExpertBot(Bot):
             self.logger.info("No filter_key parameter found.")
             self.filter = False
         elif not (hasattr(self.parameters, 'filter_value') or hasattr(self.parameters, 'filter_values')):
-            self.logger.info("No filter_value parameter found.")
+            self.logger.info("No filter_value or filter_values parameter found.")
             self.filter = False
         elif not (hasattr(self.parameters, 'filter_action')):
             self.logger.info("No filter_action parameter found.")
@@ -114,7 +114,7 @@ class FilterExpertBot(Bot):
 
         if self.filter and self.parameters.filter_action == "keep":
             if self.doFilter(event, self.parameters.filter_key,
-                             self.parameters.filter_value if self.multi else self.parameters.filter_values):
+                             self.parameters.filter_values if self.multi else self.parameters.filter_value):
                 # action == keep, filter matches
                 self.send_message(event, path='filter_match',
                                   path_permissive=True)
@@ -140,7 +140,7 @@ class FilterExpertBot(Bot):
             return self.equalsFilter(event, key, condition)
 
     def equalsFilter(self, event, key, value):
-        if isinstance(value, collections.Sequence):
+        if isinstance(value, Sequence):
                 return (key in event and
 			event.get(key) in value)
         else:
