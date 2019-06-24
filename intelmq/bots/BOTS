@@ -996,6 +996,21 @@
                 "user": "intelmq"
             }
         },
+        "PostgreSQLRelational": {
+            "description": "PostgreSQL is the bot responsible to send events to a normalized PostgreSQL Database. When activating autocommit, transactions are not used: http://initd.org/psycopg/docs/connection.html#connection.autocommit",
+            "module": "intelmq.bots.outputs.postgresql_relational.output",
+            "parameters": {
+                "autocommit": true,
+                "database": "intelmq-events",
+                "host": "localhost",
+                "jsondict_as_string": true,
+                "password": "<password>",
+                "port": "5432",
+                "sslmode": "require",
+                "table": "events",
+                "user": "intelmq"
+            }
+        },
         "REST API": {
             "description": "REST API is the bot responsible to send events to a REST API listener through POST.",
             "module": "intelmq.bots.outputs.restapi.output",
