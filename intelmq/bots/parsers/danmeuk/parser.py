@@ -17,6 +17,7 @@ FEEDS = {
             'source.ip'
         ],
     },
+
     'https://www.dan.me.uk/torlist/': {
         'format': [
             'source.ip'
@@ -48,7 +49,6 @@ class DanMeUkTorParserBot(ParserBot):
         defaults = {
             ('raw', line),
             ('classification.type', 'tor'),
-            ('classification.taxonomy', 'other')
         }
 
         for i in defaults:

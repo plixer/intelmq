@@ -407,6 +407,11 @@
             "module": "intelmq.bots.parsers.danger_rulez.parser",
             "parameters": {}
         },
+	"Dan.me.uk": {
+	    "description": "Dan.Me.Uk Tor Parser is the bost resposible to parse the report and santize the information.",
+	    "module": "intelmq.bots.parsers.danmeuk.parser",
+	    "parameters": {}
+	},
         "Dataplane Feeds": {
             "description": "Dataplane Parser is the bot responsible to parse the Dataplane reports and sanitize the information.",
             "module": "intelmq.bots.parsers.dataplane.parser",
@@ -726,7 +731,8 @@
                 "filter_action": "<keep/drop>",
                 "filter_key": "<source.geolocation.cc>",
                 "filter_regex": "",
-                "filter_value": "<PT>"
+                "filter_value": "<PT>",
+		"filter_values": [ "value1", "value2"]
             }
         },
         "Generic DB Lookup": {
@@ -978,6 +984,21 @@
         "PostgreSQL": {
             "description": "PostgreSQL is the bot responsible to send events to a PostgreSQL Database. When activating autocommit, transactions are not used: http://initd.org/psycopg/docs/connection.html#connection.autocommit",
             "module": "intelmq.bots.outputs.postgresql.output",
+            "parameters": {
+                "autocommit": true,
+                "database": "intelmq-events",
+                "host": "localhost",
+                "jsondict_as_string": true,
+                "password": "<password>",
+                "port": "5432",
+                "sslmode": "require",
+                "table": "events",
+                "user": "intelmq"
+            }
+        },
+        "PostgreSQLRelational": {
+            "description": "PostgreSQL is the bot responsible to send events to a normalized PostgreSQL Database. When activating autocommit, transactions are not used: http://initd.org/psycopg/docs/connection.html#connection.autocommit",
+            "module": "intelmq.bots.outputs.postgresql_relational.output",
             "parameters": {
                 "autocommit": true,
                 "database": "intelmq-events",
