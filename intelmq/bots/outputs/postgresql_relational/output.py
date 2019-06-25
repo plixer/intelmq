@@ -254,9 +254,19 @@ class PostgreSQLRelationalOutputBot(Bot):
         if 'source.ip' in event:
              source_ip = event.get('source.ip')
              success = self.add_ip_from_feed(source_ip, feed, feed_provider, classification)
+             if not success:
+                 self.logger.warn('There was an error processing IP for %s.' % source_ip)
+        elif 'source.network' in event:
+             source_network = event.get('source.network')
+             success = self.add_ip_from_feed(source_network, feed, feed_provider, classification)
         elif 'source.fqdn' in event:
              source_domain = event.get('source.fqdn')
              success = self.add_domain_from_feed(source_domain, feed, feed_provider, classification)
+             if not success:
+                 self.logger.warn('There was an error processing domain for %s.' % source_domain)
+        else:
+             self.logger.warn('No threat content for event from %s %s.' % (feed, feed_provider))
+             success = True
 
         if success:
              self.con.commit()
