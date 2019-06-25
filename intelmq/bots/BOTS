@@ -573,6 +573,11 @@
             "module": "intelmq.bots.parsers.phishtank.parser",
             "parameters": {}
         },
+        "Plixer": {
+            "description": "Plixer Parser is the bot responsible to parse the report and sanitize the information.",
+            "module": "intelmq.bots.parsers.plixer.parser",
+            "parameters": {}
+        },
         "ShadowServer": {
             "description": "ShadowServer Parser is a bot capable of parsing all shadowserver feeds, depending on configuration files. Parameter 'feedname' is used as identifier to chose the correct mapping.",
             "module": "intelmq.bots.parsers.shadowserver.parser",
