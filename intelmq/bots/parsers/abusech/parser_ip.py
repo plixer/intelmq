@@ -51,7 +51,6 @@ class AbusechIPParserBot(ParserBot):
         comments = list(r for r in raw_lines if self.__is_comment_line_regex.search(r))
 
         fields = comments[-2].split(',') # last comment is at end of file an contains number of entries
-        self.logger.info(','.join(fields))
         if len(fields) is not len(FEEDS[feed]['format']):
             self.logger.warning("Feed '{}' has not the expected fields: {} != {}".format(feed,
                                                                                          len(fields),
