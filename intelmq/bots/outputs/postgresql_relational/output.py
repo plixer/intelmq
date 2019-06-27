@@ -243,12 +243,8 @@ class PostgreSQLRelationalOutputBot(Bot):
             self.logger.info('message has no feed provider')
         feed_provider = event.get('feed.provider')
         feed = event.get('feed.name')
-        if 'classification.taxonomy' in event:
-            taxonomy = event.get('classification.taxonomy')
-            classification_type = event.get('classification.type')
-        elif 'extra.classification_type' in event: # handle classification types that are not part of standard data harmonization
-            taxonomy = 'other'
-            classification_type = event.get('extra.classification_type')
+        taxonomy = event.get('classification.taxonomy')
+        classification_type = event.get('classification.type')
 
         classification = self.insert_or_retrieve_classification(classification_type, taxonomy)
         if classification is None:

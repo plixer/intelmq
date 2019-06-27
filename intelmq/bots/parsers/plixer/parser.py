@@ -35,13 +35,14 @@ class PlixerDomainParserBot(ParserBot):
             event.add('classification.type', self.type)
             event.add('classification.taxonomy', self.taxonomy)
         event.add('source.fqdn', line) 
+        event.add('raw', line)
         yield event
 
     def get_taxonomy(self, extension):
         if extension == '.43':
-           return ('extra', 'apt1')
+           return ('other', 'apt1')
         elif extension == '.46':
-           return ('extra', 'ipcheck')
+           return ('other', 'ipcheck')
         if extension == '.48':
            return ('malicious code', 'c2server')
         elif extension == '.49':
