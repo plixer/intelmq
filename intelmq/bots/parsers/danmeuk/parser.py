@@ -17,7 +17,6 @@ FEEDS = {
             'source.ip'
         ],
     },
-
     'https://www.dan.me.uk/torlist/': {
         'format': [
             'source.ip'
