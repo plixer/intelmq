@@ -158,6 +158,7 @@ class ClassificationType(GenericType):
      * """
 
     allowed_values = ["application-compromise",
+                      'apt1',
                       'backdoor',
                       'blacklist',
                       'brute-force',
@@ -177,6 +178,7 @@ class ClassificationType(GenericType):
                       'ids-alert',
                       'infected-system',
                       "information-disclosure",
+                      'ipcheck',
                       'leak',
                       'malware',
                       'malware-configuration',
