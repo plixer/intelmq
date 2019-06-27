@@ -29,18 +29,25 @@ class PlixerDomainParserBot(ParserBot):
         if line.endswith('/'):
             line = line[:-1]
         event = self.new_event(report)
-        event.add('classification.type', self.type)
-        event.add('classification.taxonomy', self.taxonomy)
+        if self.taxonomy == 'extra':
+            event.add('extra.classification_type', self.type)
+        else:
+            event.add('classification.type', self.type)
+            event.add('classification.taxonomy', self.taxonomy)
         event.add('source.fqdn', line) 
         yield event
 
     def get_taxonomy(self, extension):
+        if extension == '.43':
+           return ('extra', 'apt1')
+        elif extension == '.46':
+           return ('extra', 'ipcheck')
         if extension == '.48':
            return ('malicious code', 'c2server')
         elif extension == '.49':
            return ('fraud', 'phishing')
         elif extension == '.50':
-           return ('intrusion attempt', 'exploit')
+           return ('malicious code', 'malware')
         elif extension == '.51':
            return ('malicious code', 'ransomware')
         else:
