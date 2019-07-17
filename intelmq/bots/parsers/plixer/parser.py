@@ -8,6 +8,7 @@ import re
 import os
 
 import dateutil
+import ipaddress
 
 from intelmq.lib import utils
 from intelmq.lib.bot import ParserBot
@@ -34,16 +35,22 @@ class PlixerDomainParserBot(ParserBot):
         else:
             event.add('classification.type', self.type)
             event.add('classification.taxonomy', self.taxonomy)
-        event.add('source.fqdn', line) 
+        try: # test to see if line contains an ip
+            ipaddress.ip_address(line)
+            event.add('source.ip', line)
+        except ValueError: # not an ip
+            event.add('source.fqdn', line) 
         event.add('raw', line)
         yield event
 
     def get_taxonomy(self, extension):
         if extension == '.43':
            return ('other', 'apt1')
+        elif extension == '.47':
+            return ('other', 'blacklist')
         elif extension == '.46':
            return ('other', 'ipcheck')
-        if extension == '.48':
+        elif extension == '.48':
            return ('malicious code', 'c2server')
         elif extension == '.49':
            return ('fraud', 'phishing')
